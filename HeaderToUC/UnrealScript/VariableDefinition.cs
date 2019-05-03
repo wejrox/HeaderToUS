@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace HeaderToUS.UnrealScriptDefinitions
 {
@@ -29,9 +27,9 @@ namespace HeaderToUS.UnrealScriptDefinitions
         }
 
         /// <summary>Name of the variable.</summary>
-        public string Name { get; private set; }
+        private string Name { get; set; }
         /// <summary>Type that this variable will hold.</summary>
-        public string Type { get; private set; }
+        private string Type { get; set; }
         /// <summary>Modifiers to apply to the variable.</summary>
         public List<VariableModifier> Modifiers { get; private set; }
 
@@ -67,7 +65,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// Could be a primitive type or a class type, or an array. 
         /// </summary>
         /// <param name="headerDefinition"></param>
-        public string GetVariableType(string headerDefinition)
+        private string GetVariableType(string headerDefinition)
         {
             List<string> splitDefinition = headerDefinition.Split(new Char[] { ' ' }).ToList<string>();
             splitDefinition.RemoveAll(item => item == "");
@@ -148,7 +146,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// </summary>
         /// <param name="headerDefinition">The definition of this variable provided by the header.</param>
         /// <returns></returns>
-        public string GetVariableName(string headerDefinition)
+        private string GetVariableName(string headerDefinition)
         {
             // Split when there have been three spaces in a row (three because when the string is parsed arrays have spaces, so removing their symbols creates 2 spaces).
             List<string> splitDefinition = Regex.Split(headerDefinition, @" {3,}").ToList<string>();
@@ -166,7 +164,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// Sets the modifiers of the variable by splitting the definition in the right spots.
         /// </summary>
         /// <param name="headerDefinition">The definition of this variable provided by the header.</param>
-        public void SetModifiers(string headerDefinition)
+        private void SetModifiers(string headerDefinition)
         {
             // Create the Modifiers list. Needs to be created even if none exist or it cannot be accessed for printing.
             this.Modifiers = new List<VariableModifier>();

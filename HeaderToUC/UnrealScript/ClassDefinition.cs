@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HeaderToUS.UnrealScriptDefinitions
 {
@@ -12,7 +9,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// <summary>
         /// Representations of the type of class being ingested. 
         /// </summary>
-        public  enum ClassTypes
+        public enum ClassTypes
         {
             Class,
             Enum,
@@ -34,19 +31,20 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// <summary>Array index in a string split by 'public:' that the variable definitions can be found.</summary>
         private const int variablesIndex = 1;
 
-        public ClassTypes ClassType { get; private set; }
+        private ClassTypes ClassType { get; set; }
         public string PackageName { get; private set; }
         public string ClassName { get; private set; }
-        public string ExtensionClassName { get; private set; }
-        public List<VariableDefinition> Variables { get; private set; }
+        private string ExtensionClassName { get; set; }
+        private List<VariableDefinition> Variables { get; set; }
 
+        /// <summary>
+        /// Sets the package and class name, gets the class type and extension, then creates all the variables.
+        /// </summary>
+        /// <param name="headerDefinition">A string header representation of the class.</param>
         public ClassDefinition(string headerDefinition)
         {
             // Split the header into lines for parsing certain details.
             string[] definitionLines = headerDefinition.Split('\n');
-
-            // Inform user Which class we're up to.
-            Console.WriteLine(definitionLines[packageNameDefinitionIndex]);
 
             // Gets the package definition which contains the class name too.
             string packageDefinition = definitionLines[packageNameDefinitionIndex].Split(' ')[2];
@@ -55,6 +53,9 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Set the package and class name.
             this.PackageName = packagePath[0];
             this.ClassName = packagePath[1];
+
+            // Inform user Which class we're up to.
+            Console.WriteLine("[INFO] Parsing '{0}'", this.ClassName);
 
             // Set the extension class.
             string[] classDefinition = definitionLines[classDefinitionIndex].Split(' ');
@@ -71,24 +72,26 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 this.ClassType = ClassTypes.Interface;
             }
 
-            // Set class variables.
+            // Create class variables.
             this.Variables = new List<VariableDefinition>();
 
             // Get the variables portion of the definition.
             // (Split based on `public:` since it is the separator between class definition, variables, and functions).
             string[] classDefinitions = Regex.Split(headerDefinition, @"public:");
 
-            // Remove tab characters.
+            // Get the variable portion of the class definition.
             string variableDefinitions = classDefinitions[variablesIndex];
-            UpdateVariables(variableDefinitions);
+
+            // Parse the variable group string.
+            ParseVariables(variableDefinitions);
         }
 
         /// <summary>
         /// Given a string containing variables, updates the variables of this class to match those contained.
         /// Creates a new variable entry for each variable in the string that is editable.
         /// </summary>
-        /// <param name="variables"></param>
-        public void UpdateVariables(string variables)
+        /// <param name="variables">A string containing variables delimited by <c>\n</c></param>
+        private void ParseVariables(string variables)
         {
             // Split based on newline to get each line of the variables.
             string[] variableDefinitions = variables.Split('\n');
@@ -106,7 +109,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     }
                     catch (InvalidVariableException)
                     {
-                        Console.WriteLine("Invalid variable in class {0}. Skipping...", this.ClassName);
+                        Console.WriteLine("[ERROR] Invalid Header variable in class '{0}'.", this.ClassName);
                     }
                 }
             }
@@ -125,6 +128,12 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Create variable definitions and decide if class is native.
             foreach (VariableDefinition v in this.Variables)
             {
+                // Don't add the variable if it's uneditable and we have the console flag set.
+                if (Program.OnlyExportEditable && !v.Modifiers.Contains(VariableDefinition.VariableModifier.Edit))
+                {
+                    continue;
+                }
+
                 variableDefinition += v.ToString();
                 if(variableDefinition.Contains("native"))
                 {
@@ -139,6 +148,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
             classDefinition += this.ExtensionClassName;
 
+            // Set as native if required.
             if(isNative)
             {
                 classDefinition += '\n';
