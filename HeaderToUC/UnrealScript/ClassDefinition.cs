@@ -56,14 +56,20 @@ namespace HeaderToUS.UnrealScriptDefinitions
             this.PackageName = packagePath[0];
             this.ClassName = packagePath[1];
 
-            // Set the extension class
+            // Set the extension class.
             string[] classDefinition = definitionLines[classDefinitionIndex].Split(' ');
-            
+
+            // Set the class type.
+            this.ClassType = ClassTypes.Class;
+
             // Remove any special characters and remove the prefix before the class extension (usually 'U').
             this.ExtensionClassName = classDefinition[extensionNameIndex].Replace("\n", "").Remove(0, 1);
-            // Set the type of class.
-            // Currently they're all just clases.
-            this.ClassType = ClassTypes.Class;
+
+            // Update to an interface if necessary.
+            if(this.ExtensionClassName == "Interface")
+            {
+                this.ClassType = ClassTypes.Interface;
+            }
 
             // Set class variables.
             this.Variables = new List<VariableDefinition>();
@@ -128,9 +134,9 @@ namespace HeaderToUS.UnrealScriptDefinitions
 
             // Create the class definition.
             string classDefinition = "";
-            classDefinition += "class ";
+            classDefinition += this.ClassType == ClassTypes.Class ? "class " : "interface ";
             classDefinition += this.ClassName;
-            classDefinition += " extends ";
+            classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
             classDefinition += this.ExtensionClassName;
 
             if(isNative)

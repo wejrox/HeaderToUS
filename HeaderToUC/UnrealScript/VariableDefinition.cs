@@ -84,14 +84,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 case "byte":
 
                     // Only add if it's not unknown. (Unknown types become 'unsigned char' variables with named 'UnknownData<id>').
-                    if (!splitDefinition[1].Contains("UnknownData"))
+                    if (splitDefinition[1].Contains("UnknownData"))
                     {
-                        type += type;
-                    } 
-                    else
-                    {
-                        // Return null if the variable should not be added.
-                        // Byte should not be added if it's unknown as it means it's an invalid variable.
                         type = null;
                     }
                     break;
@@ -122,8 +116,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 // Variable is a script delegate.
                 case "FScriptDelegate":
 
-                    // DO NOTHING, delegates break UDK compilation.
-                    return null;
+                    // Throw variable creation exception, delegates break UDK compilation.
+                    throw new InvalidVariableException();
 
                 // Variable is a byte.
                 case "char":
@@ -284,7 +278,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                         variableDefinition += " editinline";
                         break;
                     case VariableModifier.EditInlineNotify:
-                        variableDefinition += " editinlinenotify";
+                        variableDefinition += " databinding";
                         break;
                     case VariableModifier.Export:
                         variableDefinition += " export";
