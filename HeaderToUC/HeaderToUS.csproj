@@ -76,7 +76,7 @@
     <Compile Include="Exceptions\InvalidVariableException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UnrealScript\Handler.cs" />
+    <Compile Include="UnrealScript\ClassGenerator.cs" />
     <Compile Include="UnrealScript\ClassDefinition.cs" />
     <Compile Include="UnrealScript\VariableDefinition.cs" />
   </ItemGroup>
