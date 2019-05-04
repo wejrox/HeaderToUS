@@ -76,8 +76,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
             this.Variables = new List<VariableDefinition>();
 
             // Get the variables portion of the definition.
-            // (Split based on `public:` since it is the separator between class definition, variables, and functions).
-            string[] classDefinitions = Regex.Split(headerDefinition, @"public:");
+            // (Split based on <c>public:</c> or <c>static UClass</c> since they are the separators between class definition, variables, and functions).
+            string[] classDefinitions = Regex.Split(headerDefinition, @"public:|static UClass.*");
 
             // Get the variable portion of the class definition.
             string variableDefinitions = classDefinitions[variablesIndex];
