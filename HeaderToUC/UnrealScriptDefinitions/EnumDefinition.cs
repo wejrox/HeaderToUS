@@ -73,19 +73,19 @@ namespace HeaderToUS.UnrealScriptDefinitions
         public override string ToString()
         {
             // Define the enum.
-            string enumDefinition = "enum " + this.Name + '\n';
-            enumDefinition += "{" + '\n';
+            string output = "enum " + this.Name + '\n';
+            output += "{" + '\n';
 
             // Add the enum properties
             foreach (string property in this.EnumProperties)
             {
-                enumDefinition += "    " + property.ToString() + "," + '\n';
+                output += "    " + property.ToString() + "," + '\n';
             }
 
             // Add closing brace.
-            enumDefinition += "};" + '\n' + '\n';
+            output += "};" + '\n' + '\n';
 
-            return enumDefinition;
+            return output;
         }
     }
 }

@@ -69,8 +69,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
         public override string ToString()
         {
             // Define the struct.
-            string enumDefinition = "struct " + this.Name + '\n';
-            enumDefinition += "{" + '\n';
+            string output = "struct " + this.Name + '\n';
+            output += "{" + '\n';
 
             // Add the struct variables.
             foreach (VariableDefinition variable in this.Variables)
@@ -81,13 +81,13 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     continue;
                 }
 
-                enumDefinition += "    " + variable.ToString();
+                output += "    " + variable.ToString();
             }
 
             // Add closing brace.
-            enumDefinition += "};" + '\n' + '\n';
+            output += "};" + '\n' + '\n';
 
-            return enumDefinition;
+            return output;
         }
     }
 }
