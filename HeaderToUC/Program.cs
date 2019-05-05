@@ -1,49 +1,60 @@
 ﻿using HeaderToUS.UnrealScript;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace HeaderToUS
 {
     class Program
     {
-        /// <summary>The path to the file to parse.</summary>
-        static string headerFilePath = "";
+        /// <summary>Paths to the files to be parsed.</summary>
+        static List<string> filePaths = new List<string>();
+
         /// <summary>Whether to only export variables that are tagged as editable inside the UDK editor.</summary>
         public static bool OnlyExportEditable = false;
 
         static void Main(string[] args)
         {
-            // Get the file location to parse.
-            try
+            // Handle lack of parameters.
+            if (args.Length < 1 || args[0] == "-rl" || args[0] == "--rocket-league")
             {
-                headerFilePath = args[0].Length > 0 ? args[0] : throw new IndexOutOfRangeException();
-
-            }
-            catch (IndexOutOfRangeException) {
                 Console.WriteLine("[FAILURE] No header file was given, aborting...");
                 Environment.Exit(1);
             }
 
-            // Decide whether to export un-editable variables.
-            try
+            // Get the classes header file location to parse.
+            foreach (string argument in args)
             {
-                if (args[1] == "-rl" || args[1] == "--rocket-league")
+                if(argument == "-rl" || argument == "--rocket-league")
                 {
-                    Console.WriteLine("[INFO] Rocket league modding specified, only exporting editable variables.");
                     OnlyExportEditable = true;
+                } 
+                else
+                {
+                    filePaths.Add(argument);
                 }
-
             }
-            catch (IndexOutOfRangeException)
+
+            // Get the contents of the files to parse.
+            string fileContents = "";
+
+            // Combine all of the files into one for more efficient parsing.
+            foreach (string path in filePaths)
             {
-                // Do nothing, argument was not required.
+                try
+                {
+                    fileContents += File.ReadAllText(@"" + path);
+                }
+                catch
+                {
+                    Console.WriteLine("[FAILURE] Could not find the file at '{0}', aborting...", path);
+                    Environment.Exit(1);
+                }
             }
-
-            // Get the contents of the file to parse.
-            string fileLineContents = File.ReadAllText(@"" + headerFilePath);
+            
 
             // Create the UnrealScript definitions.
-            ClassGenerator ClassHandler = new ClassGenerator(fileLineContents);
+            ClassGenerator ClassHandler = new ClassGenerator(fileContents);
 
             // Export the classes.
             ClassHandler.ExportClasses();

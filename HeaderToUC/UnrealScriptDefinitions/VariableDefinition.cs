@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace HeaderToUS.UnrealScriptDefinitions
 {
-    public class VariableDefinition
+    public class VariableDefinition : Definition
     {
         /// <summary>
         /// Enumerable representations of a modifier to be applied to a variable.
@@ -25,9 +25,6 @@ namespace HeaderToUS.UnrealScriptDefinitions
             Net,
             NoExport
         }
-
-        /// <summary>Name of the variable.</summary>
-        private string Name { get; set; }
         /// <summary>Type that this variable will hold.</summary>
         private string Type { get; set; }
         /// <summary>Modifiers to apply to the variable.</summary>
@@ -40,7 +37,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         public VariableDefinition(string headerDefinition)
         {
             // Remove unneeded parts of the definition.
-            string cleanedDefinition = headerDefinition.Replace("struct", "").Replace("class", "").Replace("unsigned", "").Replace("1", "").Replace(";", "").Replace(":", "").Replace("<", "").Replace(">", "").Replace("*", "");
+            string cleanedDefinition = headerDefinition.Replace("struct ", "").Replace("class ", "").Replace("unsigned ", "").Replace("1", "").Replace(";", "").Replace(":", "").Replace("< ", " ").Replace("<", " ").Replace(" >", " ").Replace(">", " ").Replace("*", "");
 
             string type = GetVariableType(cleanedDefinition);
             string name = GetVariableName(cleanedDefinition);
@@ -67,24 +64,31 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// <param name="headerDefinition"></param>
         private string GetVariableType(string headerDefinition)
         {
-            List<string> splitDefinition = headerDefinition.Split(new Char[] { ' ' }).ToList<string>();
+            // Split based on double space as type definitions may be arrays with spaces in between the type.
+            List<string> splitDefinition = Regex.Split(headerDefinition, @"  ").ToList<string>();
             splitDefinition.RemoveAll(item => item == "");
+
+            // Get rid of any excess spaces.
+            foreach (string entry in splitDefinition)
+            {
+                entry.Replace(" ", "");
+            }
 
             // Get the base type of the variable.
             string type = GetType(splitDefinition[0]);
             switch(type)
             {
                 case "array":
-                    
-                    // Append the array type inside here.
-                    type += "<" + GetType(splitDefinition[1]) + ">";
+
+                    // Append the array type inside here (type is after the array keyword separated by space due to the replace operations performed earlier).
+                    type += "<" + GetType(splitDefinition[0].Split(' ')[1]) + ">";
                     break;
                 case "byte":
 
                     // Only add if it's not unknown. (Unknown types become 'unsigned char' variables with named 'UnknownData<id>').
                     if (splitDefinition[1].Contains("UnknownData"))
                     {
-                        type = null;
+                        throw new InvalidVariableException("Unknown data variable");
                     }
                     break;
             }
@@ -104,8 +108,14 @@ namespace HeaderToUS.UnrealScriptDefinitions
             switch (type)
             {
                 // Variable is an array.
-                case "TArray":
+                // There may not be spaces in the definition to split the type and its children so use a regex to decide if it is a TEnumAsByte property.
+                case var enumType when new Regex(@"TArray").IsMatch(enumType):
                     return "array";
+
+                // Variable is an enum entry. 
+                // There may not be spaces in the definition to split the type and its children so use a regex to decide if it is a TEnumAsByte property.
+                case var enumType when new Regex(@"TEnumAsByte").IsMatch(enumType):
+                    return "byte";
 
                 // Variable is a boolean.
                 case "long":
@@ -115,7 +125,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 case "FScriptDelegate":
 
                     // Throw variable creation exception, delegates break UDK compilation.
-                    throw new InvalidVariableException();
+                    throw new InvalidVariableException("Delegate variable");
 
                 // Variable is a byte.
                 case "char":
@@ -132,8 +142,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 // Variable is a known primitive or a class reference.
                 default:
 
-                    // If the first letter is a capital then it's a class reference and will have a prefix that needs to be removed.
-                    if(Char.IsUpper(type[0]))
+                    // If the first two letters are uppercase then it's a class or struct reference and has a prefix that needs to be removed.
+                    if(Char.IsUpper(type[0]) && Char.IsUpper(type[1]))
                     {
                         type = type.Remove(0, 1);
                     }
@@ -178,7 +188,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             }
 
             // Get the modifiers individually.
-            List<string> modifiers = definitionParts[3].Split(new Char[] { ' ', '|' }).ToList<string>();
+            List<string> modifiers = definitionParts[3].Split(new Char[] { ' ', '|', ','}).ToList<string>();
 
             // Remove empty string entries.
             modifiers.RemoveAll(entry => entry == "");
@@ -233,7 +243,13 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     case "CPF_NoExport":
                         this.Modifiers.Add(VariableModifier.NoExport);
                         break;
+                    case "CPF_DataBinding":
+                        this.Modifiers.Add(VariableModifier.EditInlineNotify);
+                        break; ;
                     case "CPF_Config":
+                        // Do nothing. No need.
+                        break;
+                    case "CPF_GlobalConfig":
                         // Do nothing. No need.
                         break;
                     case "CPF_Component":

@@ -19,7 +19,7 @@ namespace HeaderToUS.ClassExporter
             Directory.CreateDirectory(classToExport.PackageName);
             Directory.CreateDirectory(classToExport.PackageName + "/Classes");
             string scriptDir = currentDir + "/" + classToExport.PackageName + "/Classes/";
-            string scriptName = classToExport.ClassName + ".uc";
+            string scriptName = classToExport.ClassFileName + ".uc";
 
             // Create the file and its contents
             File.WriteAllText(scriptDir + scriptName, classToExport.ToString());
