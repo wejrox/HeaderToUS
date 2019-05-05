@@ -75,6 +75,12 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Add the struct variables.
             foreach (VariableDefinition variable in this.Variables)
             {
+                // Don't add the variable if it's uneditable and we have the console flag set.
+                if (Program.OnlyExportEditable && !variable.Modifiers.Contains(VariableDefinition.VariableModifier.Edit))
+                {
+                    continue;
+                }
+
                 enumDefinition += "    " + variable.ToString();
             }
 
