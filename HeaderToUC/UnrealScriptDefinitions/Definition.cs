@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace HeaderToUS.UnrealScriptDefinitions
 {
+    /// <summary>
+    /// Base class for the different definitions of UnrealScript.
+    /// </summary>
     public class Definition
     {
         /// <summary>Name of this definition</summary>

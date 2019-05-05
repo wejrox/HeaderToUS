@@ -34,7 +34,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// Creates a new variable by parsing the header definition provided.
         /// </summary>
         /// <param name="headerDefinition">The definition of this variable provided by the header.</param>
-        public VariableDefinition(string headerDefinition)
+        public VariableDefinition(string headerDefinition, string packageName, string classFileName)
         {
             // Remove unneeded parts of the definition.
             string cleanedDefinition = headerDefinition.Replace("struct ", "").Replace("class ", "").Replace("unsigned ", "").Replace("1", "").Replace(";", "").Replace(":", "").Replace("< ", " ").Replace("<", " ").Replace(" >", " ").Replace(">", " ").Replace("*", "");
@@ -45,7 +45,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             if (type != null && name != null)
             {
                 this.Type = type;
-                this.Name = name;
+                this.GenerateDefinition(name, packageName, classFileName);
 
                 // Set the modifiers of this variable.
                 SetModifiers(cleanedDefinition);

@@ -22,6 +22,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         private const int variableBeginIndex = 1;
 
         private List<VariableDefinition> Variables { get; set; } = new List<VariableDefinition>();
+        public bool UsesNative = false;
 
         /// <summary>
         /// Sets the super class properties and adds the <c>Struct</c> variables.
@@ -52,7 +53,15 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 {
                     try
                     {
-                        this.Variables.Add(new VariableDefinition(variable));
+                        VariableDefinition newVariable = new VariableDefinition(variable, this.PackageName, this.ClassFileName);
+
+                        // Make sure the class uses native if a struct within it does.
+                        if (newVariable.Modifiers.Contains(VariableDefinition.VariableModifier.Native)) {
+                            this.UsesNative = true;
+                        }
+
+                        // Add it to the list.
+                        this.Variables.Add(newVariable);
                     }
                     catch (InvalidVariableException e)
                     {

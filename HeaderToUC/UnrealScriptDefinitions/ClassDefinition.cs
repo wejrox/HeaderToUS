@@ -106,7 +106,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     try
                     {
                         // Add the variable to the list.
-                        this.Variables.Add(new VariableDefinition(stringDefinition));
+                        this.Variables.Add(new VariableDefinition(stringDefinition, this.PackageName, this.ClassFileName));
                     }
                     catch (InvalidVariableException e)
                     {
@@ -125,6 +125,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Whether or not the class should be marked as native.
             bool isNative = false;
             string variableDefinition = "";
+            string enumDefinition = "";
+            string structDefinition = "";
 
             // Create variable definitions and decide if class is native.
             foreach (VariableDefinition v in this.Variables)
@@ -140,6 +142,24 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 {
                     isNative = true;
                 }
+            }
+
+            // Add enums.
+            foreach (EnumDefinition definition in this.Enums)
+            {
+                enumDefinition += definition.ToString();
+            }
+
+            // Add structs.
+            foreach (StructDefinition definition in this.Structs)
+            {
+                // Mark native if necessary.
+                if(definition.UsesNative)
+                {
+                    isNative = true;
+                }
+
+                structDefinition += definition.ToString();
             }
 
             // Create the class definition.
@@ -167,18 +187,12 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Double new line for formatting.
             classDefinition += '\n';
             classDefinition += '\n';
-            
+
             // Add enums.
-            foreach (EnumDefinition definition in this.Enums)
-            {
-                classDefinition += definition.ToString();
-            }
+            classDefinition += enumDefinition;
 
             // Add structs.
-            foreach (StructDefinition definition in this.Structs)
-            {
-                classDefinition += definition.ToString();
-            }
+            classDefinition += structDefinition;
 
             // Add class variables.
             classDefinition += variableDefinition;
