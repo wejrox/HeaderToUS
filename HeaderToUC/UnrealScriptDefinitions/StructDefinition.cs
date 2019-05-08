@@ -50,7 +50,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             variableDefinitions = Regex.Split(variableDefinitions, @"inline.*")[0];
             List<string> variableLines = variableDefinitions.Split('\n').ToList<string>();
 
-            // Parse each enum line which are explicitly defined with the value they equal (e.g. `val = 0, valTwo = 1`)
+            // Parse each struct variable line given.
             foreach (string variable in variableLines)
             {
                 // Only parse the string if it has contents.

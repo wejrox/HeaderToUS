@@ -61,14 +61,19 @@ namespace HeaderToUS.UnrealScript
             // Add each enum to the correct class.
             foreach (string definition in enumDefinitions)
             {
-                EnumDefinition newStruct = new EnumDefinition(definition);
-                ClassDefinition parentClass = GeneratedDefinitions.Find(def => def.PackageName == newStruct.PackageName && def.ClassFileName == newStruct.ClassFileName);
+                EnumDefinition newEnum = new EnumDefinition(definition);
+                ClassDefinition parentClass = GeneratedDefinitions.Find(def => def.PackageName == newEnum.PackageName && def.ClassFileName == newEnum.ClassFileName);
+
+                // Create a new class if the parent doesn't exist.
                 if (parentClass == null)
                 {
-                    Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of enum '" + newStruct.Name + "' not found, skipping.");
+                    Logger.Error("Parent class '" + newEnum.PackageName + "." + newEnum.ClassFileName + "' of enum '" + newEnum.Name + "' not found, setting as invalid.");
+                    ClassDefinition invalidClass = new ClassDefinition(newEnum);
+                    this.GeneratedDefinitions.Add(invalidClass);
                     continue;
                 }
-                parentClass.Enums.Add(newStruct);
+
+                parentClass.Enums.Add(newEnum);
             }
 
             // Add each struct to the correct class.
@@ -76,11 +81,16 @@ namespace HeaderToUS.UnrealScript
             {
                 StructDefinition newStruct = new StructDefinition(definition);
                 ClassDefinition parentClass = GeneratedDefinitions.Find(def => def.PackageName == newStruct.PackageName && def.ClassFileName == newStruct.ClassFileName);
+
+                // Create a new class if the parent doesn't exist.
                 if (parentClass == null)
                 {
-                    Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of struct '" + newStruct.Name + "' not found, skipping.");
+                    Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of struct '" + newStruct.Name + "' not found, setting as invalid.");
+                    ClassDefinition invalidClass = new ClassDefinition(newStruct);
+                    this.GeneratedDefinitions.Add(invalidClass);
                     continue;
                 }
+
                 parentClass.Structs.Add(newStruct);
             }
         }

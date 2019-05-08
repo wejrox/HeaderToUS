@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace HeaderToUS.UnrealScriptDefinitions
@@ -54,12 +55,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 }
 
                 string variableName = property.Split('=')[0];
-
-                // Remove the trailing space if it exists.
-                if (variableName[variableName.Length - 1] == ' ')
-                {
-                    variableName = variableName.Remove(variableName.Length - 1);
-                }
+                variableName = Regex.Replace(variableName, @"\s", "");
 
                 // Add the property.
                 EnumProperties.Add(variableName);

@@ -45,6 +45,11 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Set the type of this variable if it's valid.
             if (type != null && name != null)
             {
+                int memLocIndex = name.IndexOf('[');
+                if (memLocIndex != -1)
+                {
+                    name = name.Remove(memLocIndex, name.Count() - memLocIndex);
+                }
                 this.Type = type;
                 this.GenerateDefinition(name, packageName, classFileName);
 

@@ -13,7 +13,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
         public enum ClassTypes
         {
             Class,
-            Interface
+            Interface,
+            Invalid
         }
 
         /// <summary>Which line contains the package this class belongs to.</summary>
@@ -32,7 +33,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         private const int variablesIndex = 1;
         
         /// <summary>Whether this definition is a class or an interface.</summary>
-        private ClassTypes ClassType { get; set; }
+        public ClassTypes ClassType { get; set; }
         /// <summary>Name of the class to extend from.</summary>
         private string ExtensionClassName { get; set; }
         /// <summary>Variables contained within this class.</summary>
@@ -41,6 +42,32 @@ namespace HeaderToUS.UnrealScriptDefinitions
         public List<StructDefinition> Structs { get; set; } = new List<StructDefinition>();
         /// <summary>Enums that are defined within this class.</summary>
         public List<EnumDefinition> Enums { get; set; } = new List<EnumDefinition>();
+
+        /// <summary>
+        /// Constructor for enums that don't have parent classes in existsnce.
+        /// </summary>
+        /// <param name="invalidEnum"></param>
+        public ClassDefinition (EnumDefinition invalidEnum)
+        {
+            this.PackageName = invalidEnum.PackageName;
+            this.Name = invalidEnum.ClassFileName;
+            this.ClassFileName = invalidEnum.ClassFileName;
+            this.ClassType = ClassTypes.Invalid;
+            this.Enums.Add(invalidEnum);
+        }
+
+        /// <summary>
+        /// Constructor for structs that don't have parent classes in existence.
+        /// </summary>
+        /// <param name="invalidStruct"></param>
+        public ClassDefinition(StructDefinition invalidStruct)
+        {
+            this.PackageName = invalidStruct.PackageName;
+            this.Name = invalidStruct.ClassFileName;
+            this.ClassFileName = invalidStruct.ClassFileName;
+            this.ClassType = ClassTypes.Invalid;
+            this.Structs.Add(invalidStruct);
+        }
 
         /// <summary>
         /// Sets the package and class name, gets the class type and extension, then creates all the variables.
@@ -75,7 +102,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 Logger.Log("Class '" + this.ClassFileName + "' has no extension class.");
             }
 
-            // Decide on class type
+            // Decide on class type.
             if (this.ExtensionClassName == "Interface")
             {
                 this.ClassType = ClassTypes.Interface;
@@ -180,26 +207,31 @@ namespace HeaderToUS.UnrealScriptDefinitions
             classDefinition += " * \n";
             classDefinition += " * Ownership of transpiled classes remain with their original authors. \n";
             classDefinition += " *******************************************************************************/\n";
-            classDefinition += this.ClassType == ClassTypes.Class ? "class " : "interface ";
-            classDefinition += this.Name;
-            if (this.ExtensionClassName != "")
-            {
-                classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
-            }
-            classDefinition += this.ExtensionClassName;
 
-            // Set as native if required.
-            if(isNative)
+            // Don't attempt to create the class definition if it doesn't exist.
+            if (this.ClassType != ClassTypes.Invalid)
             {
+                classDefinition += this.ClassType == ClassTypes.Class ? "class " : "interface ";
+                classDefinition += this.Name;
+                if (this.ExtensionClassName != "")
+                {
+                    classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
+                }
+                classDefinition += this.ExtensionClassName;
+
+                // Set as native if required.
+                if (isNative)
+                {
+                    classDefinition += '\n';
+                    classDefinition += "    native";
+                }
+                classDefinition += ";";
+
+                // Double new line for formatting.
                 classDefinition += '\n';
-                classDefinition += "    native";
-            }
-            classDefinition += ";";
-            
-            // Double new line for formatting.
-            classDefinition += '\n';
-            classDefinition += '\n';
+                classDefinition += '\n';
 
+            }
             // Add enums.
             classDefinition += enumDefinition;
 

@@ -15,10 +15,19 @@ namespace HeaderToUS.ClassExporter
             // Get the executable location.
             string currentDir = Directory.GetCurrentDirectory();
 
+            // Create the package name.
+            string packageName = classToExport.PackageName;
+
+            // If the class is invalid, update the package name to be invalid.
+            if (classToExport.ClassType == ClassDefinition.ClassTypes.Invalid)
+            {
+                packageName += "_INVALID";
+            }
+
             // Create the directories if they don't exist.
-            Directory.CreateDirectory(classToExport.PackageName);
-            Directory.CreateDirectory(classToExport.PackageName + "/Classes");
-            string scriptDir = currentDir + "/" + classToExport.PackageName + "/Classes/";
+            Directory.CreateDirectory(packageName);
+            Directory.CreateDirectory(packageName + "/Classes");
+            string scriptDir = currentDir + "/" + packageName + "/Classes/";
             string scriptName = classToExport.ClassFileName + ".uc";
 
             // Create the file and its contents
