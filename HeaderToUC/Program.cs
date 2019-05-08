@@ -1,4 +1,5 @@
-﻿using HeaderToUS.UnrealScript;
+﻿using HeaderToUS.Audit;
+using HeaderToUS.UnrealScript;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,10 +17,9 @@ namespace HeaderToUS
         static void Main(string[] args)
         {
             // Handle lack of parameters.
-            if (args.Length < 1 || args[0] == "-rl" || args[0] == "--rocket-league")
+            if (args.Length < 1 || args.Length == 1 && (args[0] == "-rl" || args[0] == "--rocket-league"))
             {
-                Console.WriteLine("[FAILURE] No header file was given, aborting...");
-                Environment.Exit(1);
+                Logger.Fatal("No header file was given, aborting...");
             }
 
             // Get the classes header file location to parse.
@@ -29,6 +29,10 @@ namespace HeaderToUS
                 {
                     OnlyExportEditable = true;
                 } 
+                else if (argument == "-s" || argument == "--silent")
+                {
+                    Logger.LogToConsole = false;
+                }
                 else
                 {
                     filePaths.Add(argument);
@@ -47,8 +51,7 @@ namespace HeaderToUS
                 }
                 catch
                 {
-                    Console.WriteLine("[FAILURE] Could not find the file at '{0}', aborting...", path);
-                    Environment.Exit(1);
+                    Logger.Fatal("Could not find the file at '" + path + "', aborting...");
                 }
             }
             
@@ -59,12 +62,11 @@ namespace HeaderToUS
             // Export the classes.
             ClassHandler.ExportClasses();
 
+            Logger.DumpToFile();
+
             // Pretty text for the user to know what's going on.
             Console.WriteLine("================================================================================");
             Console.WriteLine("[SUCESS] Classes have been generated.");
-            Console.WriteLine("[INFO] Header files don't contain structs defined in classes.");
-            Console.WriteLine("[INFO] You will receive errors about missing types if custom structs were used.");
-            Console.WriteLine("[INFO] Manually define the structs, or comment out code using them.");
             Console.WriteLine("================================================================================");
         }
     }

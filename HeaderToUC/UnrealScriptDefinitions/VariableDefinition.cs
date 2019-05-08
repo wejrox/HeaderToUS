@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HeaderToUS.Audit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -83,14 +84,12 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     // Append the array type inside here (type is after the array keyword separated by space due to the replace operations performed earlier).
                     type += "<" + GetType(splitDefinition[0].Split(' ')[1]) + ">";
                     break;
-                case "byte":
+            }
 
-                    // Only add if it's not unknown. (Unknown types become 'unsigned char' variables with named 'UnknownData<id>').
-                    if (splitDefinition[1].Contains("UnknownData"))
-                    {
-                        throw new InvalidVariableException("Unknown data variable");
-                    }
-                    break;
+            // Only add if it's not unknown. (Unknown types become variables named 'UnknownData<id>').
+            if (splitDefinition[1].Contains("UnknownData"))
+            {
+                throw new InvalidVariableException("Unknown data variable");
             }
 
             // Return the formatted type.
@@ -259,7 +258,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                         // Means the header has no reference to the type specified. Ignore.
                         break;
                     default:
-                        Console.WriteLine("Modifier '{0}' not recognised.", modifier);
+                        Logger.Warn("Modifier '" + modifier + "' not recognised.");
                         break;
                 }
             }

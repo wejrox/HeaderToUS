@@ -1,7 +1,9 @@
-﻿using System;
+﻿using HeaderToUS.Audit;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace HeaderToUS.UnrealScriptDefinitions
@@ -39,10 +41,13 @@ namespace HeaderToUS.UnrealScriptDefinitions
             this.Name = enumDetails[structNameindex];
 
             // Inform the user where we're up to.
-            Console.WriteLine("[INFO] Parsing structs for '{0}'", this.ClassFileName);
+            Logger.Log("Parsing struct '" + this.ClassFileName + "." + this.Name + "'");
 
             // Get the lines that are variables.
             string variableDefinitions = headerDefinition.Split(new Char[] { '{', '}' })[1];
+            
+            // Get rid of the stuff after the variables if there is any.
+            variableDefinitions = Regex.Split(variableDefinitions, @"inline.*")[0];
             List<string> variableLines = variableDefinitions.Split('\n').ToList<string>();
 
             // Parse each enum line which are explicitly defined with the value they equal (e.g. `val = 0, valTwo = 1`)
@@ -65,7 +70,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     }
                     catch (InvalidVariableException e)
                     {
-                        Console.WriteLine("[ERROR] Invalid Header variable in struct '{0}': '{1}'.", this.Name, e.Message);
+                        Logger.Error("Invalid Header variable in struct '" + this.Name + "': '", e);
                     }
                 }
             }

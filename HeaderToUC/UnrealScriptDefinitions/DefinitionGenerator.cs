@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using HeaderToUS.ClassExporter;
+using HeaderToUS.Audit;
 
 namespace HeaderToUS.UnrealScript
 {
@@ -63,7 +64,8 @@ namespace HeaderToUS.UnrealScript
                 ClassDefinition parentClass = GeneratedDefinitions.Find(def => def.PackageName == newStruct.PackageName && def.ClassFileName == newStruct.ClassFileName);
                 if (parentClass == null)
                 {
-                    Console.WriteLine("[ERROR] Parent class '{0}.{1}' of enum '{2}' not found, skipping.", newStruct.PackageName, newStruct.ClassFileName, newStruct.Name);
+                    Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of enum '" + newStruct.Name + "' not found, skipping.");
+                    continue;
                 }
                 parentClass.Enums.Add(newStruct);
             }
@@ -75,7 +77,7 @@ namespace HeaderToUS.UnrealScript
                 ClassDefinition parentClass = GeneratedDefinitions.Find(def => def.PackageName == newStruct.PackageName && def.ClassFileName == newStruct.ClassFileName);
                 if (parentClass == null)
                 {
-                    Console.WriteLine("[ERROR] Parent class '{0}.{1}' of struct '{2}' not found, skipping.", newStruct.PackageName, newStruct.ClassFileName, newStruct.Name);
+                    Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of struct '" + newStruct.Name + "' not found, skipping.");
                     continue;
                 }
                 parentClass.Structs.Add(newStruct);
@@ -90,7 +92,7 @@ namespace HeaderToUS.UnrealScript
             // Export each of the generated classes.
             foreach (ClassDefinition definition in this.GeneratedDefinitions)
             {
-                Console.WriteLine("[INFO] Generating UnrealScript file for '{0}'", definition.ClassFileName);
+                Logger.Log("Generating UnrealScript file for '" + definition.ClassFileName + "'");
                 Exporter.ExportClass(definition);
             }
         }

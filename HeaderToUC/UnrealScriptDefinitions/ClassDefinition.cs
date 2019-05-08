@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using HeaderToUS.Audit;
 
 namespace HeaderToUS.UnrealScriptDefinitions
 {
@@ -58,13 +59,21 @@ namespace HeaderToUS.UnrealScriptDefinitions
             this.GenerateDefinition(packagePath[1], packagePath[0], packagePath[1]);
 
             // Inform user Which class we're up to.
-            Console.WriteLine("[INFO] Parsing '{0}'", this.Name);
+            Logger.Log("Parsing '" + this.Name + "'.");
 
             // Set the extension class.
             string[] classDefinition = definitionLines[classDefinitionIndex].Split(' ');
 
             // Remove any special characters and remove the prefix before the class extension (usually 'U').
-            this.ExtensionClassName = classDefinition[extensionNameIndex].Replace("\n", "").Remove(0, 1);
+            if (classDefinition.Length >= extensionNameIndex + 1)
+            {
+                this.ExtensionClassName = classDefinition[extensionNameIndex].Replace("\n", "").Remove(0, 1);
+            }
+            else
+            {
+                this.ExtensionClassName = "";
+                Logger.Log("Class '" + this.ClassFileName + "' has no extension class.");
+            }
 
             // Decide on class type
             if (this.ExtensionClassName == "Interface")
@@ -78,7 +87,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
 
             // Get the variables portion of the definition.
             // (Split based on <c>public:</c> or <c>static UClass</c> since they are the separators between class definition, variables, and functions).
-            string[] classDefinitions = Regex.Split(headerDefinition, @"public:|static UClass.*");
+            string[] classDefinitions = Regex.Split(headerDefinition, @"public:|static UClass.*|template.*|static inline.*");
 
             // Get the variable portion of the class definition.
             string variableDefinitions = classDefinitions[variablesIndex];
@@ -110,7 +119,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     }
                     catch (InvalidVariableException e)
                     {
-                        Console.WriteLine("[ERROR] Invalid Header variable in class '{0}': '{1}'.", this.Name, e.Message);
+                        Logger.Error("Invalid Header variable in class '" + this.Name + "': ", e);
                     }
                 }
             }
@@ -173,7 +182,10 @@ namespace HeaderToUS.UnrealScriptDefinitions
             classDefinition += " *******************************************************************************/\n";
             classDefinition += this.ClassType == ClassTypes.Class ? "class " : "interface ";
             classDefinition += this.Name;
-            classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
+            if (this.ExtensionClassName != "")
+            {
+                classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
+            }
             classDefinition += this.ExtensionClassName;
 
             // Set as native if required.
