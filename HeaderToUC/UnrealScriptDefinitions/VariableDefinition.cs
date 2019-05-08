@@ -42,6 +42,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
 
             string type = GetVariableType(cleanedDefinition);
             string name = GetVariableName(cleanedDefinition);
+
             // Set the type of this variable if it's valid.
             if (type != null && name != null)
             {
