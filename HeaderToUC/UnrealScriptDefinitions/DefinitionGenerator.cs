@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HeaderToUS.ClassExporter;
 using HeaderToUS.Audit;
+using System.IO;
 
 namespace HeaderToUS.UnrealScript
 {
@@ -89,9 +90,39 @@ namespace HeaderToUS.UnrealScript
         /// </summary>
         public void ExportClasses()
         {
+            // Delete the old packages if required.
+            if (Program.FreshExport)
+            {
+                Logger.Log("Flag set for clean transpilation. \n       Wiping packages if they already exist...");
+                List<string> packageNames = new List<string>();
+
+                // Get package names.
+                foreach (ClassDefinition definition in this.GeneratedDefinitions)
+                {
+                    string packageName = definition.PackageName;
+
+                    // Generate a list of package names that need to be deleted.
+                    if(!packageNames.Contains(packageName))
+                    {
+                        packageNames.Add(packageName);
+                    }
+                }
+
+                // Delete packages.
+                foreach (string package in packageNames)
+                {
+                    // Can only delete it if it exists.
+                    if (Directory.Exists(package))
+                    {
+                        Directory.Delete(package, true);
+                    }
+                }
+            }
+
             // Export each of the generated classes.
             foreach (ClassDefinition definition in this.GeneratedDefinitions)
             {
+                // Generate the file.
                 Logger.Log("Generating UnrealScript file for '" + definition.ClassFileName + "'");
                 Exporter.ExportClass(definition);
             }

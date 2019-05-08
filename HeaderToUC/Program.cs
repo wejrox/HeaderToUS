@@ -14,6 +14,9 @@ namespace HeaderToUS
         /// <summary>Whether to only export variables that are tagged as editable inside the UDK editor.</summary>
         public static bool OnlyExportEditable = false;
 
+        /// <summary>Whether to remove the output from previous transpiling.</summary>
+        public static bool FreshExport = false;
+
         static void Main(string[] args)
         {
             // The amount of argument modifiers provided.
@@ -22,7 +25,7 @@ namespace HeaderToUS
             // Get the classes header file location to parse and other options to apply.
             foreach (string argument in args)
             {
-                if(argument == "-rl" || argument == "--rocket-league")
+                if(argument == "-e" || argument == "--only-editable")
                 {
                     modifiersProvided++;
                     OnlyExportEditable = true;
@@ -31,6 +34,11 @@ namespace HeaderToUS
                 {
                     modifiersProvided++;
                     Logger.LogToConsole = false;
+                }
+                else if (argument == "-c" || argument == "--clean")
+                {
+                    modifiersProvided++;
+                    FreshExport = true;
                 }
                 else
                 {
