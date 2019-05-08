@@ -70,7 +70,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
                     }
                     catch (InvalidVariableException e)
                     {
-                        Logger.Error("Invalid Header variable in struct '" + this.Name + "': '", e);
+                        Logger.Warn("Invalid Header variable in struct '" + this.Name + "': ", e);
                     }
                 }
             }

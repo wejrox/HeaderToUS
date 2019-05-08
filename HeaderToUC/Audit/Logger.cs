@@ -8,17 +8,29 @@ using static HeaderToUS.Audit.LogEntry;
 
 namespace HeaderToUS.Audit
 {
+    /// <summary>
+    /// Utility class used to inform the user of things which handles cleanup and output upon application exit.
+    /// </summary>
     public static class Logger
     {
+        /// <summary>Whether to output the current status to the console when running the application.</summary>
         public static bool LogToConsole = true;
 
+        /// <summary>Where to output the log file.</summary>
         private static string logFileName = "output-log.txt";
 
         private static List<LogEntry> logOutputs = new List<LogEntry>();
         private static List<LogEntry> warnOuputs = new List<LogEntry>();
         private static List<LogEntry> errorOutputs = new List<LogEntry>();
+
+        /// <summary>If a fatal error occurs, it is stored here.</summary>
         private static LogEntry fatalOutput;
 
+        /// <summary>
+        /// A log entry which informs the user of something.
+        /// </summary>
+        /// <param name="message">Description of what happened.</param>
+        /// <param name="exception">Any exception that was thrown.</param>
         public static void Log(string message, Exception exception = null)
         {
             LogEntry newEntry;
@@ -39,6 +51,11 @@ namespace HeaderToUS.Audit
             }
         }
 
+        /// <summary>
+        /// A log entry warning the user of something.
+        /// </summary>
+        /// <param name="message">Description of what went wrong.</param>
+        /// <param name="exception">Any exception that was thrown.</param>
         public static void Warn(string message, Exception exception = null)
         {
             LogEntry newEntry;
@@ -59,6 +76,11 @@ namespace HeaderToUS.Audit
             }
         }
 
+        /// <summary>
+        /// A log entry informing the user of an error that occured.
+        /// </summary>
+        /// <param name="message">Description of what went wrong.</param>
+        /// <param name="exception">Any exception that was thrown.</param>
         public static void Error(string message, Exception exception = null)
         {
             LogEntry newEntry;
@@ -79,6 +101,10 @@ namespace HeaderToUS.Audit
             }
         }
 
+        /// <summary>
+        /// Informs the user of a fatal error, prints the log file and exits the application.
+        /// </summary>
+        /// <param name="message">Description of what went wrong.</param>
         public static void Fatal(string message)
         {
             LogEntry newEntry = new LogEntry(message, LogSeverity.Fatal);
@@ -94,27 +120,51 @@ namespace HeaderToUS.Audit
             Environment.Exit(1);
         }
 
+        /// <summary>
+        /// Dumps what has been logged so far into a file in the same directory as the exe.
+        /// </summary>
         public static void DumpToFile()
         {
-            File.Create(logFileName);
+            // Create or recreate the log file.
+            try
+            {
+                File.Create(logFileName).Close();
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine("Could not create the log file: \n" + e.Message);
+            }
+
+            // Create the log contents.
+            string logOutput = "";
             foreach(LogEntry e in logOutputs)
             {
-                File.AppendAllText(logFileName, e.ToString());
+                logOutput += e.ToString() + '\n';
             }
             
             foreach (LogEntry e in warnOuputs)
             {
-                File.AppendAllText(logFileName, e.ToString());
+                logOutput += e.ToString() + '\n';
             }
             
             foreach (LogEntry e in errorOutputs)
             {
-                File.AppendAllText(logFileName, e.ToString());
+                logOutput += e.ToString() + '\n';
             }
             
             if (fatalOutput != null)
             {
-                File.AppendAllText(logFileName, fatalOutput.ToString());
+                logOutput += fatalOutput.ToString() + '\n';
+            }
+
+            // Write the log file.
+            try
+            {
+                File.AppendAllText(logFileName, logOutput);
+            }
+            catch (Exception e)
+            {
+                Console.Out.WriteLine("Could not add output to the log file: \n", e.Message);
             }
         }
     }

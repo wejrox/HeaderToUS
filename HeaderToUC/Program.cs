@@ -16,27 +16,33 @@ namespace HeaderToUS
 
         static void Main(string[] args)
         {
-            // Handle lack of parameters.
-            if (args.Length < 1 || args.Length == 1 && (args[0] == "-rl" || args[0] == "--rocket-league"))
-            {
-                Logger.Fatal("No header file was given, aborting...");
-            }
+            // The amount of argument modifiers provided.
+            int modifiersProvided = 0;
 
-            // Get the classes header file location to parse.
+            // Get the classes header file location to parse and other options to apply.
             foreach (string argument in args)
             {
                 if(argument == "-rl" || argument == "--rocket-league")
                 {
+                    modifiersProvided++;
                     OnlyExportEditable = true;
                 } 
                 else if (argument == "-s" || argument == "--silent")
                 {
+                    modifiersProvided++;
                     Logger.LogToConsole = false;
                 }
                 else
                 {
                     filePaths.Add(argument);
                 }
+            }
+
+            // If the amount of arguments are the same as the modifiers, no file names have been provided.
+            // This also covers what happens if no parameters are provided.
+            if(args.Length == modifiersProvided)
+            {
+                Logger.Fatal("No header file names were provided, aborting...");
             }
 
             // Get the contents of the files to parse.

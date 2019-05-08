@@ -61,10 +61,10 @@ namespace HeaderToUS.Audit
                     break;
             }
 
-            formattedMessage += this.Message + '\n';
+            formattedMessage += this.Message;
             if (this.ThrownException != null)
             {
-                formattedMessage += this.ThrownException.Message + '\n';
+                formattedMessage += this.ThrownException.Message;
             }
 
             return formattedMessage;
