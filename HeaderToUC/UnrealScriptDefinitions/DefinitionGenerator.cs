@@ -52,10 +52,42 @@ namespace HeaderToUS.UnrealScript
                 }
             }
 
+            // Hold a reference to all classes that should be native.
+            List<string> nativeClasses = new List<string>();
+
             // Create each class.
             foreach (string definition in classDefinitions)
             {
-                this.GeneratedDefinitions.Add(new ClassDefinition(definition));
+                ClassDefinition newClass = new ClassDefinition(definition);
+                this.GeneratedDefinitions.Add(newClass);
+
+                // Update the list of native classes.
+                if(newClass.IsNative)
+                {
+                    if (!nativeClasses.Contains(newClass.ParentClassName))
+                    {
+                        nativeClasses.Add(newClass.ParentClassName);
+                    }
+                }
+            }
+
+            // Update each native class to be marked as native.
+            // Native classes must extend from native classes, but classes are only naturally marked native if they contain native properties.
+            // This can't be done above as there is no guarantee that the parent class will exist when the child is made.
+            foreach (string className in nativeClasses)
+            {
+                ClassDefinition nativeClass = this.GeneratedDefinitions.Find(predicateClass => predicateClass.Name == className);
+
+                // Could extend from a class that isn't in the header files given.
+                if (nativeClass != null)
+                {
+                    Logger.Info("Setting class '" + className + "' to native.");
+                    nativeClass.IsNative = true;
+                }
+                else
+                {
+                    Logger.Warn("Attempted to set the class '" + className + "' to native, but no class with that name exists.");
+                }
             }
 
             // Add each enum to the correct class.
@@ -70,10 +102,16 @@ namespace HeaderToUS.UnrealScript
                     Logger.Error("Parent class '" + newEnum.PackageName + "." + newEnum.ClassFileName + "' of enum '" + newEnum.Name + "' not found, setting as invalid.");
                     ClassDefinition invalidClass = new ClassDefinition(newEnum);
                     this.GeneratedDefinitions.Add(invalidClass);
-                    continue;
                 }
-
-                parentClass.Enums.Add(newEnum);
+                else if (parentClass.ClassType == ClassDefinition.ClassTypes.Invalid)
+                {
+                    Logger.Error("Parent class '" + newEnum.PackageName + "." + newEnum.ClassFileName + "' of enum '" + newEnum.Name + "' not found, setting as invalid.");
+                    parentClass.Enums.Add(newEnum);
+                }
+                else
+                {
+                    parentClass.Enums.Add(newEnum);
+                }
             }
 
             // Add each struct to the correct class.
@@ -105,18 +143,7 @@ namespace HeaderToUS.UnrealScript
             {
                 if (definition.IsNative)
                 {
-                    ClassDefinition parentClass = this.GeneratedDefinitions.Find(predicateClass => predicateClass.Name == definition.ExtensionClassName);
-
-                    // Could extend from a class that isn't in the header files given.
-                    if (parentClass != null)
-                    {
-                        Logger.Info("Setting parent class '" + parentClass.Name + "' of '" + definition.Name + "' to native as the child is native.");
-                        parentClass.IsNative = true;
-                    }
-                    else
-                    {
-                        Logger.Warn("Attempted to set the parent class '" + definition.ExtensionClassName + "' of '" + definition.Name + "' to native, but no reference exists.");
-                    }
+                    
                 }
             }
         }
@@ -150,7 +177,26 @@ namespace HeaderToUS.UnrealScript
                     // Can only delete it if it exists.
                     if (Directory.Exists(package))
                     {
-                        Directory.Delete(package, true);
+                        // Directory delete randomly doesn't work sometimes (ok.) so there's a failsafe here.
+                        // See: https://stackoverflow.com/questions/329355/cannot-delete-directory-with-directory-deletepath-true.
+                        try
+                        {
+                            Directory.Delete(package, true);
+                        }
+                        catch (Exception e)
+                        {
+                            // Really dirty and I don't like it but it's necessary.
+                            // Sleeps for 50ms then tries to delete the folder again.
+                            System.Threading.Thread.Sleep(50);
+                            try
+                            {
+                                Directory.Delete(package, true);
+                            }
+                            catch
+                            {
+                                Logger.Warn("Could not wipe package '" + package + "'. ", e);
+                            }
+                        }
                     }
                 }
             }

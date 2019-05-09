@@ -37,7 +37,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
         /// <summary>Whether this definition is a class or an interface.</summary>
         public ClassTypes ClassType { get; set; }
         /// <summary>Name of the class to extend from.</summary>
-        public string ExtensionClassName { get; private set; }
+        public string ParentClassName { get; private set; }
         /// <summary>Variables contained within this class.</summary>
         private List<VariableDefinition> Variables { get; set; } = new List<VariableDefinition>();
         /// <summary>Structs that are defined within this class.</summary>
@@ -96,16 +96,16 @@ namespace HeaderToUS.UnrealScriptDefinitions
             // Remove any special characters and remove the prefix before the class extension (usually 'U').
             if (classDefinition.Length >= extensionNameIndex + 1)
             {
-                this.ExtensionClassName = classDefinition[extensionNameIndex].Replace("\n", "").Remove(0, 1);
+                this.ParentClassName = classDefinition[extensionNameIndex].Replace("\n", "").Remove(0, 1);
             }
             else
             {
-                this.ExtensionClassName = "";
+                this.ParentClassName = "";
                 Logger.Info("Class '" + this.ClassFileName + "' has no extension class.");
             }
 
             // Decide on class type.
-            if (this.ExtensionClassName == "Interface")
+            if (this.ParentClassName == "Interface")
             {
                 this.ClassType = ClassTypes.Interface;
             }
@@ -225,11 +225,11 @@ namespace HeaderToUS.UnrealScriptDefinitions
             {
                 classDefinition += this.ClassType == ClassTypes.Class ? "class " : "interface ";
                 classDefinition += this.Name;
-                if (this.ExtensionClassName != "")
+                if (this.ParentClassName != "")
                 {
                     classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
                 }
-                classDefinition += this.ExtensionClassName;
+                classDefinition += this.ParentClassName;
 
                 // Set as native if required.
                 if (isNative)
