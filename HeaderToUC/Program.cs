@@ -50,7 +50,7 @@ namespace HeaderToUS
             // This also covers what happens if no parameters are provided.
             if(args.Length == modifiersProvided)
             {
-                Logger.Fatal("No header file names were provided, aborting...");
+                Logger.Fatal("No header file names were provided, aborting...", new ArgumentException("Insufficient number of arguments."));
             }
 
             // Get the contents of the files to parse.
@@ -63,9 +63,9 @@ namespace HeaderToUS
                 {
                     fileContents += File.ReadAllText(@"" + path);
                 }
-                catch
+                catch (IOException e)
                 {
-                    Logger.Fatal("Could not find the file at '" + path + "', aborting...");
+                    Logger.Fatal("Could not find the file at '" + path + "', aborting...", e);
                 }
             }
             
@@ -76,7 +76,9 @@ namespace HeaderToUS
             // Export the classes.
             ClassHandler.ExportClasses();
 
-            Logger.DumpToFile();
+            // Dump the logs.
+            Logger.Info("Exporting logs.");
+            Logger.DumpLogsToFile();
 
             // Pretty text for the user to know what's going on.
             Console.WriteLine("================================================================================");

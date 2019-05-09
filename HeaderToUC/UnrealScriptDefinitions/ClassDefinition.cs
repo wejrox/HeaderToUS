@@ -31,11 +31,13 @@ namespace HeaderToUS.UnrealScriptDefinitions
         private const int extensionNameIndex = 4;
         /// <summary>Array index in a string split by 'public:' that the variable definitions can be found.</summary>
         private const int variablesIndex = 1;
-        
+
+        /// <summary>Whether or not the class should be considered native.</summary>
+        public bool IsNative { get; set; } = false;
         /// <summary>Whether this definition is a class or an interface.</summary>
         public ClassTypes ClassType { get; set; }
         /// <summary>Name of the class to extend from.</summary>
-        private string ExtensionClassName { get; set; }
+        public string ExtensionClassName { get; private set; }
         /// <summary>Variables contained within this class.</summary>
         private List<VariableDefinition> Variables { get; set; } = new List<VariableDefinition>();
         /// <summary>Structs that are defined within this class.</summary>
@@ -86,7 +88,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             this.GenerateDefinition(packagePath[1], packagePath[0], packagePath[1]);
 
             // Inform user Which class we're up to.
-            Logger.Log("Parsing '" + this.Name + "'.");
+            Logger.Info("Parsing '" + this.Name + "'.");
 
             // Set the extension class.
             string[] classDefinition = definitionLines[classDefinitionIndex].Split(' ');
@@ -99,7 +101,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             else
             {
                 this.ExtensionClassName = "";
-                Logger.Log("Class '" + this.ClassFileName + "' has no extension class.");
+                Logger.Info("Class '" + this.ClassFileName + "' has no extension class.");
             }
 
             // Decide on class type.
@@ -141,8 +143,18 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 {
                     try
                     {
+                        // Create the variable.
+                        VariableDefinition newVariable = new VariableDefinition(stringDefinition, this.PackageName, this.ClassFileName);
+
                         // Add the variable to the list.
-                        this.Variables.Add(new VariableDefinition(stringDefinition, this.PackageName, this.ClassFileName));
+                        this.Variables.Add(newVariable);
+
+                        // Set native if necessary.
+                        if(newVariable.Modifiers.Contains(VariableDefinition.VariableModifier.Native))
+                        {
+                            Logger.Info("Updating class '" + this.PackageName + "." + this.Name + "' to be native as it contains native variables.");
+                            this.IsNative = true;
+                        }
                     }
                     catch (InvalidVariableException e)
                     {

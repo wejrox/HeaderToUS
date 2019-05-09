@@ -31,16 +31,16 @@ namespace HeaderToUS.Audit
         /// </summary>
         /// <param name="message">Description of what happened.</param>
         /// <param name="exception">Any exception that was thrown.</param>
-        public static void Log(string message, Exception exception = null)
+        public static void Info(string message, Exception exception = null)
         {
             LogEntry newEntry;
             if (exception != null)
             {
-                newEntry = new LogEntry(message, LogSeverity.Log, exception);
+                newEntry = new LogEntry(message, LogSeverity.Info, exception);
             }
             else
             {
-                newEntry = new LogEntry(message, LogSeverity.Log);
+                newEntry = new LogEntry(message, LogSeverity.Info);
             }
 
             logOutputs.Add(newEntry);
@@ -105,9 +105,16 @@ namespace HeaderToUS.Audit
         /// Informs the user of a fatal error, prints the log file and exits the application.
         /// </summary>
         /// <param name="message">Description of what went wrong.</param>
-        public static void Fatal(string message)
+        /// <param name="attachedException">Exception that triggered this fatal error.</param>
+        public static void Fatal(string message, Exception attachedException)
         {
             LogEntry newEntry = new LogEntry(message, LogSeverity.Fatal);
+
+            // Set the exception if one was thrown.
+            if(attachedException != null)
+            {
+                newEntry.ThrownException = attachedException;
+            }
 
             fatalOutput = newEntry;
 
@@ -116,14 +123,15 @@ namespace HeaderToUS.Audit
                 Console.Out.WriteLine(newEntry);
             }
 
-            DumpToFile();
+            // Dump logs and quit.
+            DumpLogsToFile();
             Environment.Exit(1);
         }
 
         /// <summary>
         /// Dumps what has been logged so far into a file in the same directory as the exe.
         /// </summary>
-        public static void DumpToFile()
+        public static void DumpLogsToFile()
         {
             // Create or recreate the log file.
             try

@@ -72,10 +72,15 @@ namespace HeaderToUS.UnrealScriptDefinitions
             string output = "enum " + this.Name + '\n';
             output += "{" + '\n';
 
-            // Add the enum properties
-            foreach (string property in this.EnumProperties)
+            // Add enum properties.
+            for (int i = 0; i < this.EnumProperties.Count; i++)
             {
-                output += "    " + property.ToString() + "," + '\n';
+                output += "    " + this.EnumProperties[i].ToString();
+                if (i < this.EnumProperties.Count - 1)
+                {
+                    output += ",";
+                }
+                output += '\n';
             }
 
             // Add closing brace.

@@ -41,7 +41,7 @@ namespace HeaderToUS.UnrealScriptDefinitions
             this.Name = enumDetails[structNameindex];
 
             // Inform the user where we're up to.
-            Logger.Log("Parsing struct '" + this.ClassFileName + "." + this.Name + "'");
+            Logger.Info("Parsing struct '" + this.ClassFileName + "." + this.Name + "'");
 
             // Get the lines that are variables.
             string variableDefinitions = headerDefinition.Split(new Char[] { '{', '}' })[1];

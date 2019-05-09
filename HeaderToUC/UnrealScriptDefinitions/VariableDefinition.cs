@@ -148,7 +148,8 @@ namespace HeaderToUS.UnrealScriptDefinitions
                 default:
 
                     // If the first two letters are uppercase then it's a class or struct reference and has a prefix that needs to be removed.
-                    if(Char.IsUpper(type[0]) && Char.IsUpper(type[1]))
+                    // Fuint is a special case as it is seemingly the only custom type that doesn't follow this naming convention.
+                    if((Char.IsUpper(type[0]) && Char.IsUpper(type[1])) || type == "Fuint")
                     {
                         type = type.Remove(0, 1);
                     }

@@ -88,10 +88,36 @@ namespace HeaderToUS.UnrealScript
                     Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of struct '" + newStruct.Name + "' not found, setting as invalid.");
                     ClassDefinition invalidClass = new ClassDefinition(newStruct);
                     this.GeneratedDefinitions.Add(invalidClass);
-                    continue;
                 }
+                else if (parentClass.ClassType == ClassDefinition.ClassTypes.Invalid)
+                {
+                    Logger.Error("Parent class '" + newStruct.PackageName + "." + newStruct.ClassFileName + "' of struct '" + newStruct.Name + "' not found, setting as invalid.");
+                    parentClass.Structs.Add(newStruct);
+                }
+                else
+                {
+                    parentClass.Structs.Add(newStruct);
+                }
+            }
 
-                parentClass.Structs.Add(newStruct);
+            // Check each class and set the extension class to native if the class is native. (Native classes can only extend native classes).
+            foreach (ClassDefinition definition in this.GeneratedDefinitions)
+            {
+                if (definition.IsNative)
+                {
+                    ClassDefinition parentClass = this.GeneratedDefinitions.Find(predicateClass => predicateClass.Name == definition.ExtensionClassName);
+
+                    // Could extend from a class that isn't in the header files given.
+                    if (parentClass != null)
+                    {
+                        Logger.Info("Setting parent class '" + parentClass.Name + "' of '" + definition.Name + "' to native as the child is native.");
+                        parentClass.IsNative = true;
+                    }
+                    else
+                    {
+                        Logger.Warn("Attempted to set the parent class '" + definition.ExtensionClassName + "' of '" + definition.Name + "' to native, but no reference exists.");
+                    }
+                }
             }
         }
 
@@ -103,7 +129,7 @@ namespace HeaderToUS.UnrealScript
             // Delete the old packages if required.
             if (Program.FreshExport)
             {
-                Logger.Log("Flag set for clean transpilation. \n       Wiping packages if they already exist...");
+                Logger.Info("Flag set for clean transpilation. \n       Wiping packages if they already exist...");
                 List<string> packageNames = new List<string>();
 
                 // Get package names.
@@ -133,7 +159,7 @@ namespace HeaderToUS.UnrealScript
             foreach (ClassDefinition definition in this.GeneratedDefinitions)
             {
                 // Generate the file.
-                Logger.Log("Generating UnrealScript file for '" + definition.ClassFileName + "'");
+                Logger.Info("Generating UnrealScript file for '" + definition.ClassFileName + "'");
                 Exporter.ExportClass(definition);
             }
         }
