@@ -225,11 +225,11 @@ namespace HeaderToUS.UnrealScriptDefinitions
             {
                 classDefinition += this.ClassType == ClassTypes.Class ? "class " : "interface ";
                 classDefinition += this.Name;
+
                 if (this.ParentClassName != "")
                 {
-                    classDefinition += this.ClassType == ClassTypes.Class ? " extends " : " implements ";
+                    classDefinition += " extends " + this.ParentClassName;
                 }
-                classDefinition += this.ParentClassName;
 
                 // Set as native if required.
                 if (isNative)
